@@ -1,14 +1,28 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
+import {useParams} from 'react-router-dom'
 import axios from 'axios'
 
-function MovieForm() {
+const initialMovie = {
+    title:'',
+    director:'',
+    metascore:'',
+    stars:[]
+}
 
-    const [update, setUpdate] = useState({
-        title:'',
-        director:'',
-        metascore:'',
-        stars:['']
-    })
+function MovieForm(props) {
+
+    const [update, setUpdate] = useState(initialMovie)
+    const {id} = useParams()
+
+    useEffect(() => {
+        const itemToUpdate = props.movies.find(movie => `${movie.id}` === id)
+
+        if (itemToUpdate) {
+            setUpdate(itemToUpdate)
+        }
+    }, [props.movies, id])
+
+
 
     const handleChanges = e => {
         setUpdate({
@@ -19,12 +33,20 @@ function MovieForm() {
 
     const updateMovie = e => {
         e.preventDefault()
-        axios.put('http://localhost:5000/api/movies')
+        axios.put(`http://localhost:5000/api/movies/${update.id}`, update)
         .then(response => {
             console.log(response)
+            props.getMovieList(response.data)
+            props.history.push(`/`)
         })
         .catch(error => {
             console.log(error)
+        })
+        setUpdate({
+            title:'',
+            director:'',
+            metascore:'',
+            stars:[]
         })
     }
 
@@ -37,25 +59,30 @@ function MovieForm() {
                     placeholder="title"
                     name="title"
                     onChange={handleChanges}
+                    value={update.title}
                     />
                 <input
                     type="text"
                     placeholder="director"
                     name="director"
                     onChange={handleChanges}
+                    value={update.director}
                     />
                 <input
                     type="text"
-                    placeholder="name"
-                    name="name"
+                    placeholder="metascore"
+                    name="metascore"
                     onChange={handleChanges}
+                    value={update.metascore}
                     />
                 <input
                     type="text"
                     placeholder="stars"
                     name="stars"
                     onChange={handleChanges}
-                    />        
+                    value={update.stars}
+                    />   
+                <button>Update</button>         
             </form>
         </div>
     )
